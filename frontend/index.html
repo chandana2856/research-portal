@@ -1,26 +1,62 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <title>Research Portal - Upload PDF</title>
+</head>
 <body>
-  <h2>Financial Research Tool</h2>
-  <input type="file" id="file" />
-  <button onclick="run()">Run Tool</button>
+    <h2>Upload Annual Report PDF</h2>
+    <form id="uploadForm">
+        <input type="file" id="fileInput" name="file" required />
+        <button type="submit">Run Tool</button>
+    </form>
 
-  <pre id="result"></pre>
+    <p id="status"></p>
 
-  <script>
-    async function run() {
-      const file = document.getElementById("file").files[0];
-      const form = new FormData();
-      form.append("file", file);
+    <script>
+        const form = document.getElementById('uploadForm');
+        const status = document.getElementById('status');
 
-      const res = await fetch("http://127.0.0.1:8000/upload", {
-        method: "POST",
-        body: form
-      });
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-      const data = await res.json();
-      document.getElementById("result").textContent = data.data;
-    }
-  </script>
+            const fileInput = document.getElementById('fileInput');
+            if (!fileInput.files.length) {
+                alert("Please select a file");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            status.textContent = "Processing...";
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/execute', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    status.textContent = "Error: " + response.statusText;
+                    return;
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = "income_statement.csv";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+
+                status.textContent = "CSV downloaded!";
+            } catch (err) {
+                console.error(err);
+                status.textContent = "Failed to fetch /execute";
+            }
+        });
+    </script>
 </body>
 </html>
