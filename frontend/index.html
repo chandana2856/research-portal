@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <h2>Financial Research Tool</h2>
+  <input type="file" id="file" />
+  <button onclick="run()">Run Tool</button>
+
+  <pre id="result"></pre>
+
+  <script>
+    async function run() {
+      const file = document.getElementById("file").files[0];
+      const form = new FormData();
+      form.append("file", file);
+
+      const res = await fetch("http://127.0.0.1:8000/upload", {
+        method: "POST",
+        body: form
+      });
+
+      const data = await res.json();
+      document.getElementById("result").textContent = data.data;
+    }
+  </script>
+</body>
+</html>
